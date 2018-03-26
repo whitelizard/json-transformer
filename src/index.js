@@ -1,5 +1,6 @@
 import isObject from 'lodash.isobject';
 import isFunction from 'lodash.isfunction';
+import get from 'lodash.get';
 
 /*
 exampleConf: {
@@ -11,8 +12,11 @@ exampleConf: {
 }
  */
 
+const context = {};
+
 export const builtInTransforms = {
   // '%global%': arg => (global || window)[arg],
+  '%get%': args => get(context, ...args),
   '%exec%': arg => {
     let [obj, member, ...args] = arg;
     let doNew;
@@ -30,7 +34,7 @@ export const builtInTransforms = {
       if (!args.length) return obj;
       [member, ...args] = args;
     }
-    if (!args.length) return obj[member];
+    if (!args.length) return !obj || !member ? obj : obj[member];
     for (const value of args) {
       if (Array.isArray(value)) {
         if (doNew) {
@@ -49,6 +53,8 @@ export const builtInTransforms = {
 };
 const defaultConf = {
   // objectSyntax: false,
+  // rootToContext: false,
+  context,
   maxDepth: 100,
 };
 
@@ -65,6 +71,7 @@ function transformer(conf, obj, level = 0) {
     const newObj = {};
     Object.entries(obj).forEach(([k, v]) => {
       newObj[k] = transformer(conf, v, level + 1);
+      if (!level && conf.rootToContext) conf.context[k] = newObj[k];
     });
     const key = Object.keys(newObj)[0];
     if (conf.objectSyntax && key in conf.transforms) {
