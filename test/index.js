@@ -7,43 +7,65 @@ test('Date & sin', t => {
     transforms: {
       '%sin%': Math.sin,
       '%Math%': Math,
-      '%global%': args => {
-        if (args[0] === 'new') {
-          const Obj = global[args[1]];
-          return new Obj(...args[2]);
-        }
-        const func = global[args[0]];
-        if (Array.isArray(args[1])) return func(...args[1]);
+      '%global%': arg => {
+        // if (args[0] === 'new') {
+        //   const Obj = global[args[1]];
+        //   return new Obj(...args[2]);
+        // }
+        const func = global[arg];
+        // if (Array.isArray(args[1])) return func(...args[1]);
         return func;
       },
       // '%-.%': args => args[0][args[1]],
-      '%run%': arg => {
-        const [obj, ...args] = arg;
-        let result = obj;
+      '%exec%': arg => {
+        let [obj, member, ...args] = arg;
+        let doNew;
+        if (obj === 'new') {
+          doNew = true;
+          [obj, member, ...args] = [member, ...args];
+        }
+        if (Array.isArray(member)) {
+          if (doNew) {
+            /* eslint-disable new-cap */
+            obj = new obj(...member);
+            doNew = false;
+            /* eslint-enable new-cap */
+          } else obj = obj(...member);
+          if (!args.length) return obj;
+          [member, ...args] = args;
+        }
+        if (!args.length) return obj[member];
         for (const value of args) {
           if (Array.isArray(value)) {
-            result = result(...value);
+            if (doNew) {
+              /* eslint-disable new-cap */
+              obj = new obj[member](...value);
+              doNew = false;
+              /* eslint-enable new-cap */
+            } else obj = obj[member](...value);
           } else {
-            result = result[value];
+            obj = obj[member];
+            member = value;
           }
         }
-        return result;
+        return obj;
       },
     },
+    context: { foo: 'bar' },
   });
   const transformed = transform({
-    a: ['b', { c: ['%sin%', [1]] }, ['%global%', ['new', 'Date', [1522084491482]]]],
-    d: ['%run%', [['%global%', ['Math']], 'cos', [1]]],
-    e: ['%run%', ['test', 'length']],
-    f: [
-      '%run%',
-      [['%global%', ['Number']], [['%run%', [['%Math%'], 'tan', [1]]]], 'toExponential', []],
-    ],
+    a: ['foo', { x: ['%sin%', [1]] }],
+    b: ['%exec%', [['%global%', 'Math'], 'cos', [1]]],
+    c: ['%exec%', [['%Math%'], 'tan', [1]]],
+    d: ['%exec%', ['test', 'length']],
+    e: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482]]],
+    f: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482], 'toISOString', []]],
   });
-  t.equals(transformed.a[1].c, 0.8414709848078965);
-  t.equals(transformed.a[2].toISOString(), '2018-03-26T17:14:51.482Z');
-  t.equals(transformed.d, 0.5403023058681398);
-  t.equals(transformed.e, 4);
-  t.equals(transformed.f, '1.5574077246549023');
+  t.equals(transformed.a[1].x, 0.8414709848078965);
+  t.equals(transformed.b, 0.5403023058681398);
+  t.equals(transformed.c, 1.5574077246549023);
+  t.equals(transformed.d, 4);
+  t.equals(transformed.e.toISOString(), '2018-03-26T17:14:51.482Z');
+  t.equals(transformed.f, '2018-03-26T17:14:51.482Z');
   t.end();
 });
