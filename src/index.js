@@ -10,14 +10,41 @@ exampleConf: {
   context: {},
 }
  */
+
 export const builtInTransforms = {
-  '%global%': args => {
-    if (args[0] === 'new') {
-      const Obj = global[args[1]];
-      return new Obj(...args[2]);
+  // '%global%': arg => (global || window)[arg],
+  '%exec%': arg => {
+    let [obj, member, ...args] = arg;
+    let doNew;
+    if (obj === 'new') {
+      doNew = true;
+      [obj, member, ...args] = [member, ...args];
     }
-    const func = global[args[0]];
-    return func(...args[1]);
+    if (Array.isArray(member)) {
+      if (doNew) {
+        /* eslint-disable new-cap */
+        obj = new obj(...member);
+        doNew = false;
+        /* eslint-enable new-cap */
+      } else obj = obj(...member);
+      if (!args.length) return obj;
+      [member, ...args] = args;
+    }
+    if (!args.length) return obj[member];
+    for (const value of args) {
+      if (Array.isArray(value)) {
+        if (doNew) {
+          /* eslint-disable new-cap */
+          obj = new obj[member](...value);
+          doNew = false;
+          /* eslint-enable new-cap */
+        } else obj = obj[member](...value);
+      } else {
+        obj = obj[member];
+        member = value;
+      }
+    }
+    return obj;
   },
 };
 const defaultConf = {
