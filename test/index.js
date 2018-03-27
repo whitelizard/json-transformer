@@ -74,3 +74,26 @@ test('default context', t => {
   t.equals(transformed.c, 14);
   t.end();
 });
+
+test('example: eval', t => {
+  let value = 0; // eslint-disable-line
+  const transform = getTransformer({
+    transforms: {
+      ...builtInTransforms,
+      '%eval%': args => eval(args[0]), // eslint-disable-line
+    },
+    rootToContext: true,
+  });
+  const transformed = transform({
+    a: [
+      '%eval%',
+      [
+        `console.log('Testing eval!');
+        value = 5;`,
+      ],
+    ],
+  });
+  console.log(transformed);
+  t.equals(value, 5);
+  t.end();
+});

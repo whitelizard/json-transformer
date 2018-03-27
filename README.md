@@ -2,17 +2,23 @@
 
 Transform an object (that was parsed from JSON) through dynamic transforms.
 
-Imaging having this JSON (e.g from noSQL database, sent over the network):
+Imaging having this JSON (e.g from some noSQL database and/or sent over the network):
 
 ```json
 {
   "timestamp": ["%exec%", ["%global%", "Date"], "now", []],
   "dateStr": ["%exec%", ["new", ["%global%", "Date"], ["%get%", ["timestamp"]], "toISOString", []]],
-  "dateStrLen": ["%exec%", [["%get%", ["dateStr"]], "length"]],
+  "dateStrLen": ["%exec%", [["%get%", ["dateStr"]], "length"]]
 }
 ```
 
-and be able to get:
+do:
+
+```js
+transform(json);
+```
+
+and get:
 
 ```js
 {
