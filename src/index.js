@@ -2,21 +2,20 @@ import isObject from 'lodash.isobject';
 import isFunction from 'lodash.isfunction';
 import get from 'lodash.get';
 
-/*
-exampleConf: {
-  objectSyntax: true,
-  transforms: {
-    '%tag%': (args) => { ... }
-  },
-  context: {},
-}
- */
-
 const context = {};
+
+const defaultConf = {
+  // objectSyntax: false,
+  rootToContext: true,
+  context,
+  maxDepth: 100,
+  transforms: {
+    // '%tag%': (args) => { ... }
+  },
+};
 
 export const builtInTransforms = {
   // '%global%': arg => (global || window)[arg],
-  '%get%': args => get(context, ...args),
   '%exec%': arg => {
     let [obj, member, ...args] = arg;
     let doNew;
@@ -51,12 +50,6 @@ export const builtInTransforms = {
     return obj;
   },
 };
-const defaultConf = {
-  // objectSyntax: false,
-  // rootToContext: false,
-  context,
-  maxDepth: 100,
-};
 
 function transformer(conf, obj, level = 0) {
   if (level > conf.maxDepth) return obj;
@@ -83,5 +76,7 @@ function transformer(conf, obj, level = 0) {
 }
 
 export default function getTransformer(config) {
-  return transformer.bind(this, { ...defaultConf, ...config });
+  const conf = { ...defaultConf, ...config };
+  if (!conf.transforms['%get%']) conf.transforms['%get%'] = args => get(conf.context, ...args);
+  return transformer.bind(this, conf);
 }

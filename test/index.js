@@ -62,6 +62,7 @@ test('default context', t => {
       '%*%': args => args.reduce((r, v) => r * v, 1),
       '%+%': args => args.reduce((r, v) => r + v, 0),
     },
+    rootToContext: true,
   });
   const transformed = transform({
     a: 5,
