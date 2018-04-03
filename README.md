@@ -107,6 +107,10 @@ MIT
 
 ## Change Log
 
+### 1.1
+
+* Added the `leafTransform` option/feature.
+
 ### 1.0
 
 First official version.
