@@ -211,14 +211,15 @@ test('realistic', t => {
   };
   const data = { type: 'temperature', payload: [24.3] };
   // Used in README:
-  getTransformer({
+  const transfomer = getTransformer({
     transforms: {
       '%jl%': args => jsonLogic.apply(args[0]),
       '%send%': args => response.send(args[0]),
     },
     context: { data },
     defaultRootTransform: '%jl%',
-  })({
+  });
+  transfomer({
     threshold: 22,
     isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
     warning: {
@@ -234,6 +235,26 @@ test('realistic', t => {
   });
   t.equals(typeof result, 'object');
   t.equals(result.type, 'warning');
+  // Dynamic context:
+  transfomer(
+    {
+      threshold: 22,
+      isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
+      warning: {
+        and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
+      },
+      result: {
+        if: [
+          { var: 'warning' },
+          ['%send%', [{ type: 'warning', text: 'High temperature' }]],
+          ['%send%', [{ type: 'log', text: 'All good' }]],
+        ],
+      },
+    },
+    { data: { type: 'temperature', payload: [19.3] } },
+  );
+  t.equals(typeof result, 'object');
+  t.equals(result.type, 'log');
   t.end();
 });
 

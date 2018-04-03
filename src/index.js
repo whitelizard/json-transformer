@@ -58,10 +58,11 @@ export const builtInTransforms = {
   },
 };
 
-function transformer(conf, obj, level = 0) {
+function transformer(conf, obj, contextInit, level = 0) {
+  if (contextInit) conf.context = { ...conf.context, ...contextInit };
   if (level > conf.maxDepth) return obj;
   if (Array.isArray(obj)) {
-    const newArray = obj.map(v => transformer(conf, v, level + 1));
+    const newArray = obj.map(v => transformer(conf, v, undefined, level + 1));
     if (!conf.objectSyntax) {
       // console.log(level, obj);
       if (conf.defaultRootTransform && level === 1) {
@@ -77,7 +78,7 @@ function transformer(conf, obj, level = 0) {
   } else if (isObject(obj)) {
     const newObj = {};
     Object.entries(obj).forEach(([k, v]) => {
-      newObj[k] = transformer(conf, v, level + 1);
+      newObj[k] = transformer(conf, v, undefined, level + 1);
       if (!level && conf.rootToContext) conf.context[k] = newObj[k];
     });
     const key = Object.keys(newObj)[0];

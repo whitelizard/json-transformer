@@ -1,4 +1,4 @@
-# json-transformer
+# json-transformer-js
 
 Transform an object (e.g parsed from JSON) through dynamic transforms, enabling JSON "rules" that allows controlled code execution.
 
@@ -106,6 +106,10 @@ The "rule" above should of course be dynamic and e.g. fetched from a database.
 MIT
 
 ## Change Log
+
+### 1.2
+
+* Added second parameter, `contextInit`, to the returned function, for dynamic context.
 
 ### 1.1
 
