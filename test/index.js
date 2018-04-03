@@ -236,3 +236,20 @@ test('realistic', t => {
   t.equals(result.type, 'warning');
   t.end();
 });
+
+test('default transform', t => {
+  const transform = getTransformer({
+    leafTransform: arg => (typeof arg === 'string' ? arg.toLowerCase() : arg),
+  });
+  const transformed = transform({
+    a: 5,
+    b: 'TEST',
+    c: [['Tom', 'Stephen'], { KEY: 'VALUE' }],
+  });
+  console.log(transformed);
+  t.equals(transformed.a, 5);
+  t.equals(transformed.b, 'test');
+  t.equals(transformed.c[0][0], 'tom');
+  t.equals(transformed.c[1].KEY, 'value');
+  t.end();
+});

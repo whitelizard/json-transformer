@@ -9,6 +9,7 @@ const defaultConf = {
   rootToContext: true,
   // noGetTransform: false,
   // defaultRootTransform: undefined,
+  // leafTransform: undefined,
   context,
   maxDepth: 100,
   transforms: {
@@ -86,7 +87,7 @@ function transformer(conf, obj, level = 0) {
     }
     return newObj;
   }
-  return obj;
+  return conf.leafTransform ? conf.leafTransform(obj) : obj;
 }
 
 export default function getTransformer(config) {

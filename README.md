@@ -64,6 +64,7 @@ Most of the features are best described through the different options that can b
 * `context = {}`: This is the context that `%get%` will grab from.
 * `rootToContext = true`: Tells the transformer to put the root key-values of the transformed object into the context.
 * `defaultRootTransform = undefined`: Makes one of the transforms the implicit default at the root of the parsed object.
+* `leafTransform = undefined`: Set this to a function in order to transform all simple/leaf values. Ex: `getTransformer({ leafTransform: arg => (typeof arg === 'string' ? arg.toLowerCase() : arg)})` to convert all strings to lower case.
 
 ## Applied
 
