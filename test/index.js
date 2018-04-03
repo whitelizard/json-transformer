@@ -203,30 +203,27 @@ test('default transform', t => {
 
 test('realistic', t => {
   let result;
-  const ws = {
+  const response = {
     send: msg => {
       console.log('sending:', msg);
       result = msg;
     },
   };
-  const msg = {
-    type: 'temperature',
-    payload: [24.3],
-  };
-  const transform = getTransformer({
+  const data = { type: 'temperature', payload: [24.3] };
+  // Used in README:
+  getTransformer({
     transforms: {
-      // ...builtInTransforms,
-      // '%global%': arg => ({ Date, Math }[arg]),
-      '%jl%': args => jsonLogic(args[0]),
-      '%send%': args => ws.send(args[0]),
+      '%jl%': args => jsonLogic.apply(args[0]),
+      '%send%': args => response.send(args[0]),
     },
-    context: { msg },
+    context: { data },
     defaultRootTransform: '%jl%',
-    // rootToContext: true,
-  });
-  const transformed = transform({
+  })({
     threshold: 22,
-    warning: { '>': [{ var: 'msg.payload.0' }, { var: 'threshold' }] },
+    isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
+    warning: {
+      and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
+    },
     result: {
       if: [
         { var: 'warning' },
@@ -235,7 +232,6 @@ test('realistic', t => {
       ],
     },
   });
-  console.log(transformed);
   t.equals(typeof result, 'object');
   t.equals(result.type, 'warning');
   t.end();

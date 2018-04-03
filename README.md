@@ -76,7 +76,7 @@ import jsonLogic from 'json-logic-js';
 function onMessage(data, response) {
   getTransformer({
     transforms: {
-      '%jl%': args => jsonLogic(args[0]),
+      '%jl%': args => jsonLogic.apply(args[0]),
       '%send%': args => response.send(args[0]),
     },
     context: { data },
