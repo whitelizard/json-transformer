@@ -204,7 +204,7 @@ test('default transform', t => {
 test('realistic', t => {
   let result;
   const ws = {
-    send: ([msg]) => {
+    send: msg => {
       console.log('sending:', msg);
       result = msg;
     },
@@ -218,7 +218,7 @@ test('realistic', t => {
       // ...builtInTransforms,
       // '%global%': arg => ({ Date, Math }[arg]),
       '%jl%': args => jsonLogic(args[0]),
-      '%send%': ws.send,
+      '%send%': args => ws.send(args[0]),
     },
     context: { msg },
     defaultRootTransform: '%jl%',

@@ -1,14 +1,30 @@
 {
   "name": "json-transformer",
   "version": "1.0.0",
-  "description": "",
+  "description":
+    "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
   "main": "index.js",
   "scripts": {
-    "test": "npx babel-node ./test/index.js"
+    "test": "npx babel-node ./test/index.js",
+    "build": "babel src/index.js -o index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whitelizard/json-transformer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whitelizard/json-transformer/issues"
+  },
+  "homepage": "https://github.com/whitelizard/json-transformer#readme",
+  "keywords": ["json", "transform", "parse", "rules"],
   "author": "Esbjörn Blomquist",
   "license": "MIT",
   "dependencies": {
+    "lodash.get": "^4.4.2",
+    "lodash.isfunction": "^3.0.9",
+    "lodash.isobject": "^3.0.2"
+  },
+  "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.2.2",
@@ -19,14 +35,9 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.9.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isfunction": "^3.0.9",
-    "lodash.isobject": "^3.0.2",
-    "lodash.set": "^4.3.2",
+    "json-logic-js": "^1.2.2",
     "prettier-eslint": "^8.8.1",
-    "tape": "^4.9.0"
-  },
-  "devDependencies": {
-    "json-logic-js": "^1.2.2"
+    "tape": "^4.9.0",
+    "lodash.set": "^4.3.2"
   }
 }

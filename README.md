@@ -67,7 +67,7 @@ Most of the features are best described through the different options that can b
 
 ## Applied
 
-Now let's make something more interesting. Let's import [JsonLogic](http://jsonlogic.com), make it the root default, make use of context, and also assume we have some websocket client that invokes our function `onMessage` when a message arrives.
+Now let's make something more interesting. Let's import [JsonLogic](http://jsonlogic.com), make it the root default, and make use of context. Let's also assume we have some websocket client that invokes our function `onMessage` when a message arrives, and allows for sending a response.
 
 ```js
 import getTransformer from 'json-transformer';
@@ -106,6 +106,6 @@ MIT
 
 ## Change Log
 
-### 0.1
+### 1.0
 
 First official version.
