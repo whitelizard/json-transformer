@@ -1,5 +1,5 @@
 {
-  "name": "json-transformer",
+  "name": "json-transformer-js",
   "version": "1.0.0",
   "description":
     "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
