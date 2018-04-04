@@ -211,7 +211,7 @@ test('realistic', t => {
   };
   const data = { type: 'temperature', payload: [24.3] };
   // Used in README:
-  const transfomer = getTransformer({
+  const transformer = getTransformer({
     transforms: {
       '%jl%': args => jsonLogic.apply(args[0]),
       '%send%': args => response.send(args[0]),
@@ -219,7 +219,7 @@ test('realistic', t => {
     context: { data },
     defaultRootTransform: '%jl%',
   });
-  transfomer({
+  transformer({
     threshold: 22,
     isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
     warning: {
@@ -236,7 +236,7 @@ test('realistic', t => {
   t.equals(typeof result, 'object');
   t.equals(result.type, 'warning');
   // Dynamic context:
-  transfomer(
+  transformer(
     {
       threshold: 22,
       isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
@@ -258,7 +258,7 @@ test('realistic', t => {
   t.end();
 });
 
-test('default transform', t => {
+test('leaf transform', t => {
   const transform = getTransformer({
     leafTransform: arg => (typeof arg === 'string' ? arg.toLowerCase() : arg),
   });
@@ -272,5 +272,23 @@ test('default transform', t => {
   t.equals(transformed.b, 'test');
   t.equals(transformed.c[0][0], 'tom');
   t.equals(transformed.c[1].KEY, 'value');
+  t.end();
+});
+
+test('realistic 2, objectSyntax', t => {
+  const transform = getTransformer({
+    transforms: {
+      '%jsonLogic%': (args, ctx) => jsonLogic.apply(args, ctx),
+    },
+    objectSyntax: true,
+  });
+  const result = transform(
+    {
+      apiCalls: [['service/three', { '%jsonLogic%': { var: 'msg.ts' } }]],
+    },
+    { msg: { pl: [261], ts: '123' } },
+  );
+  console.log(result);
+  t.equals(result.apiCalls[0][1], '123');
   t.end();
 });

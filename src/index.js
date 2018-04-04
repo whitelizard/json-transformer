@@ -2,7 +2,7 @@ import isObject from 'lodash.isobject';
 import isFunction from 'lodash.isfunction';
 import get from 'lodash.get';
 
-const context = {};
+// const context = {};
 
 const defaultConf = {
   // objectSyntax: false,
@@ -10,11 +10,11 @@ const defaultConf = {
   // noGetTransform: false,
   // defaultRootTransform: undefined,
   // leafTransform: undefined,
-  context,
+  // context,
   maxDepth: 100,
-  transforms: {
-    // '%tag%': (args) => { ... }
-  },
+  // transforms: {
+  //   // '%tag%': (args) => { ... }
+  // },
 };
 
 export const builtInTransforms = {
@@ -67,11 +67,11 @@ function transformer(conf, obj, contextInit, level = 0) {
       // console.log(level, obj);
       if (conf.defaultRootTransform && level === 1) {
         const f = conf.transforms[conf.defaultRootTransform];
-        return isFunction(f) ? f(newArray) : f;
+        return isFunction(f) ? f(newArray, conf.context) : f;
       }
       if (newArray[0] in conf.transforms) {
         const f = conf.transforms[newArray[0]];
-        return isFunction(f) ? f(newArray[1]) : f;
+        return isFunction(f) ? f(newArray[1], conf.context) : f;
       }
     }
     return newArray;
@@ -84,20 +84,22 @@ function transformer(conf, obj, contextInit, level = 0) {
     const key = Object.keys(newObj)[0];
     if (conf.objectSyntax && key in conf.transforms) {
       const f = conf.transforms[key];
-      return isFunction(f) ? f(newObj[key]) : f;
+      return isFunction(f) ? f(newObj[key], conf.context) : f;
     }
     return newObj;
   }
   return conf.leafTransform ? conf.leafTransform(obj) : obj;
 }
 
+function theGetTransform(args, ctx) {
+  if (typeof args === 'string') return get(ctx, args);
+  return get(ctx, ...args);
+}
+
 export default function getTransformer(config) {
-  const conf = { ...defaultConf, ...config };
+  const conf = { context: {}, transforms: {}, ...defaultConf, ...config };
   if (!conf.transforms['%get%'] && !conf.noGetTransform) {
-    conf.transforms['%get%'] = args => {
-      if (typeof args === 'string') return get(conf.context, args);
-      return get(conf.context, ...args);
-    };
+    conf.transforms['%get%'] = theGetTransform;
   }
   return transformer.bind(this, conf);
 }
