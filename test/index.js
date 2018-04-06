@@ -276,19 +276,61 @@ test('leaf transform', t => {
 });
 
 test('realistic 2, objectSyntax', t => {
+  const globals = {
+    Array,
+    Object,
+    Date,
+    Math,
+    JSON,
+  };
   const transform = getTransformer({
     transforms: {
+      ...builtInTransforms,
       '%jsonLogic%': (args, ctx) => jsonLogic.apply(args, ctx),
+      '%global%': arg => globals[arg],
     },
     objectSyntax: true,
   });
+  const aTimestamp = 1521663819160 / 1000;
   const result = transform(
     {
       apiCalls: [['service/three', { '%jsonLogic%': { var: 'msg.ts' } }]],
+      currentTime: {
+        '%exec%': [
+          'new',
+          { '%global%': 'Date' },
+          [{ '%jsonLogic%': { '*': [{ var: 'msg.ts' }, 1000] } }],
+        ],
+      },
+      previousTime: {
+        '%exec%': [
+          'new',
+          { '%global%': 'Date' },
+          [{ '%jsonLogic%': { '*': [{ var: 'msg.ct' }, 1000] } }],
+        ],
+      },
+      timeDiff: {
+        '%jsonLogic%': { '-': [{ var: 'currentTime' }, { var: 'previousTime' }] },
+      },
     },
-    { msg: { pl: [261], ts: '123' } },
+    { msg: { pl: [261], ts: String(aTimestamp), ct: String(aTimestamp - 3600) } },
   );
   console.log(result);
-  t.equals(result.apiCalls[0][1], '123');
+  t.equals(result.apiCalls[0][1], String(aTimestamp));
+  t.equals(result.timeDiff, 3600 * 1000);
+  t.end();
+});
+
+test('defaultRootTransform + objectSyntax', t => {
+  const transform = getTransformer({
+    transforms: { '%jl%': (args, ctx) => jsonLogic.apply(args, ctx) },
+    objectSyntax: true,
+    defaultRootTransform: '%jl%',
+  });
+  const result = transform({
+    diff: { '-': [10, 2] },
+  });
+  console.log(result);
+  t.equals(result.diff, 8);
   t.end();
 });

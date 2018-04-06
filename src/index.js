@@ -82,9 +82,15 @@ function transformer(conf, obj, contextInit, level = 0) {
       if (!level && conf.rootToContext) conf.context[k] = newObj[k];
     });
     const key = Object.keys(newObj)[0];
-    if (conf.objectSyntax && key in conf.transforms) {
-      const f = conf.transforms[key];
-      return isFunction(f) ? f(newObj[key], conf.context) : f;
+    if (conf.objectSyntax) {
+      if (conf.defaultRootTransform && level === 1) {
+        const f = conf.transforms[conf.defaultRootTransform];
+        return isFunction(f) ? f(newObj, conf.context) : f;
+      }
+      if (key in conf.transforms) {
+        const f = conf.transforms[key];
+        return isFunction(f) ? f(newObj[key], conf.context) : f;
+      }
     }
     return newObj;
   }
