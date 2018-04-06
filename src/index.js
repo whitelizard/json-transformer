@@ -58,8 +58,13 @@ export const builtInTransforms = {
   },
 };
 
-function transformer(conf, obj, contextInit, level = 0) {
-  if (contextInit) conf.context = { ...conf.context, ...contextInit };
+function transformer(conf, obj, ctx, level = 0) {
+  if (ctx) {
+    if (Object.keys(conf.context).length) {
+      ctx = { ...conf.context, ...ctx };
+    }
+    conf.context = ctx;
+  }
   if (level > conf.maxDepth) return obj;
   if (Array.isArray(obj)) {
     const newArray = obj.map(v => transformer(conf, v, undefined, level + 1));
