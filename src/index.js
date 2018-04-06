@@ -83,7 +83,7 @@ function transformer(conf, obj, contextInit, level = 0) {
     });
     const key = Object.keys(newObj)[0];
     if (conf.objectSyntax) {
-      if (conf.defaultRootTransform && level === 1) {
+      if (conf.defaultRootTransform && level === 0) {
         const f = conf.transforms[conf.defaultRootTransform];
         return isFunction(f) ? f(newObj, conf.context) : f;
       }

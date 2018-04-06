@@ -323,14 +323,18 @@ test('realistic 2, objectSyntax', t => {
 
 test('defaultRootTransform + objectSyntax', t => {
   const transform = getTransformer({
-    transforms: { '%jl%': (args, ctx) => jsonLogic.apply(args, ctx) },
+    transforms: {
+      '%jl%': (args, ctx) => {
+        console.log(args, ctx);
+        jsonLogic.apply(args, ctx);
+      },
+    },
     objectSyntax: true,
     defaultRootTransform: '%jl%',
+    rootToContext: false,
   });
-  const result = transform({
-    diff: { '-': [10, 2] },
-  });
+  const result = transform({ '>': [{ var: 'msg.pl.0' }, 10] }, { msg: {} });
   console.log(result);
-  t.equals(result.diff, 8);
+  t.ok(!result);
   t.end();
 });
