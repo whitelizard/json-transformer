@@ -34,10 +34,10 @@ and get:
 }
 ```
 
-What made that work was this simple setup (for node.js, also using the "..." operator):
+What made that work was this simple setup (for node.js):
 
 ```js
-import getTransformer, { builtInTransforms } from 'json-transformer';
+import getTransformer, { builtInTransforms } from 'json-transformer-js';
 
 const transform = getTransformer({
   transforms: {
@@ -71,31 +71,33 @@ Most of the features are best described through the different options that can b
 Now let's make something more interesting. Let's import [JsonLogic](http://jsonlogic.com), make it the root default, and make use of context. Let's also assume we have some websocket client that invokes our function `onMessage` when a message arrives, and allows for sending a response.
 
 ```js
-import getTransformer from 'json-transformer';
+import getTransformer from 'json-transformer-js';
 import jsonLogic from 'json-logic-js';
 
+const transform = getTransformer({
+  transforms: {
+    '%jl%': (arg, ctx) => jsonLogic.apply(arg, ctx),
+  },
+  defaultRootTransform: '%jl%',
+});
+
 function onMessage(data, response) {
-  getTransformer({
-    transforms: {
-      '%jl%': args => jsonLogic.apply(args[0]),
-      '%send%': args => response.send(args[0]),
+  transform(
+    {
+      threshold: 22,
+      isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
+      warning: {
+        and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
+      },
+      message: {
+        if: [{ var: 'warning' }, 'Temperature is high', undefined],
+      },
     },
-    context: { data },
-    defaultRootTransform: '%jl%',
-  })({
-    threshold: 22,
-    isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
-    warning: {
-      and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
-    },
-    result: {
-      if: [
-        { var: 'warning' },
-        ['%send%', [{ type: 'warning', text: 'High temperature' }]],
-        undefined,
-      ],
-    },
-  });
+    { data },
+  );
+  if (tr.message) {
+    response.send({ type: data.type, message: tr.message });
+  }
 }
 ```
 

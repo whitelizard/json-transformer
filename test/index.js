@@ -213,48 +213,54 @@ test('realistic', t => {
   // Used in README:
   const transformer = getTransformer({
     transforms: {
-      '%jl%': args => jsonLogic.apply(args[0]),
-      '%send%': args => response.send(args[0]),
+      // ...builtInTransforms,
+      '%jl%': (arg, ctx) => {
+        console.log('JL:', arg, ctx);
+        return jsonLogic.apply(arg, ctx);
+      },
+      // '%send%': args => response.send(args[0]),
     },
-    context: { data },
+    // context: { data },
     defaultRootTransform: '%jl%',
   });
-  transformer({
-    threshold: 22,
-    isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
-    warning: {
-      and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
-    },
-    result: {
-      if: [
-        { var: 'warning' },
-        ['%send%', [{ type: 'warning', text: 'High temperature' }]],
-        undefined,
-      ],
-    },
-  });
-  t.equals(typeof result, 'object');
-  t.equals(result.type, 'warning');
-  // Dynamic context:
-  transformer(
+  let tr = transformer(
     {
       threshold: 22,
       isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
       warning: {
         and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
       },
-      result: {
-        if: [
-          { var: 'warning' },
-          ['%send%', [{ type: 'warning', text: 'High temperature' }]],
-          ['%send%', [{ type: 'log', text: 'All good' }]],
-        ],
+      message: {
+        if: [{ var: 'warning' }, 'Temperature is high', undefined],
+      },
+    },
+    { data },
+  );
+  if (tr.message) {
+    response.send({ type: data.type, message: tr.message });
+  }
+  console.log(tr);
+  t.equals(typeof result, 'object');
+  t.equals(result.type, 'temperature');
+  t.equals(result.message, 'Temperature is high');
+  // Dynamic context:
+  result = undefined;
+  tr = transformer(
+    {
+      threshold: 22,
+      isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
+      warning: {
+        and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
+      },
+      message: {
+        if: [{ var: 'warning' }, 'Temperature is high', undefined],
       },
     },
     { data: { type: 'temperature', payload: [19.3] } },
   );
-  t.equals(typeof result, 'object');
-  t.equals(result.type, 'log');
+  console.log(tr);
+  t.equals(tr.message, undefined);
+  // t.equals(result.message, undefined);
   t.end();
 });
 
@@ -272,6 +278,53 @@ test('leaf transform', t => {
   t.equals(transformed.b, 'test');
   t.equals(transformed.c[0][0], 'tom');
   t.equals(transformed.c[1].KEY, 'value');
+  t.end();
+});
+
+test('realistic 2', t => {
+  const globals = {
+    Array,
+    Object,
+    Date,
+    Math,
+    JSON,
+  };
+  const transform = getTransformer({
+    transforms: {
+      ...builtInTransforms,
+      '%global%': arg => globals[arg],
+      // '%_%': arg => _[arg],
+      '%jsonLogic%': (args, ctx) => jsonLogic.apply(args, ctx),
+      '%jl%': (args, ctx) => jsonLogic.apply(args, ctx),
+    },
+  });
+  // const aTimestamp = 1521663819160 / 1000;
+  const context = {
+    msg: { pl: [261], ts: '1521667419.16' },
+    previous: [{ ts: '1521660219.16', pl: [218] }],
+  };
+  const result = transform(
+    {
+      apiCalls: [['service/three', ['%jsonLogic%', { var: 'msg.ts' }]]],
+      currentTime: [
+        '%exec%',
+        ['new', ['%global%', 'Date'], [['%jl%', { '*': [{ var: 'msg.ts' }, 1000] }]]],
+      ],
+      previousTime: [
+        '%exec%',
+        ['new', ['%global%', 'Date'], [['%jl%', { '*': [{ var: 'previous.0.ts' }, 1000] }]]],
+      ],
+      timeDiff: ['%jl%', { '-': [{ var: 'currentTime' }, { var: 'previousTime' }] }],
+      rawDayOfCurrent: ['%exec%', [['%get%', 'currentTime'], 'getDay', []]],
+      rawDayOfPrev: ['%exec%', [['%get%', 'previousTime'], 'getDay', []]],
+    },
+    context,
+  );
+  // console.log(result);
+  // console.log(context);
+  t.equals(result.apiCalls[0][1], '1521667419.16');
+  t.equals(result.timeDiff, 2 * 3600 * 1000);
+  t.equals(context.timeDiff, 2 * 3600 * 1000);
   t.end();
 });
 
@@ -333,8 +386,8 @@ test('defaultRootTransform + objectSyntax', t => {
     defaultRootTransform: '%jl%',
     rootToContext: false,
   });
-  const result = transform({ '>': [{ var: 'msg.pl.0' }, 10] }, { msg: {} });
-  console.log(result);
-  t.ok(!result);
+  const result = transform({ result: { '>': [{ var: 'msg.pl.0' }, 10] } }, { msg: {} });
+  console.log('RESULT:', result);
+  t.ok(!result.result);
   t.end();
 });
