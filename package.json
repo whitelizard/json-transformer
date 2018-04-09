@@ -26,7 +26,8 @@
   "dependencies": {
     "lodash.get": "^4.4.2",
     "lodash.isfunction": "^3.0.9",
-    "lodash.isobject": "^3.0.2"
+    "lodash.isobject": "^3.0.2",
+    "lodash.tail": "^4.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
