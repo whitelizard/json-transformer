@@ -17,7 +17,7 @@ test('func, object, exec & global', t => {
     JSON.parse(
       JSON.stringify({
         v: 2.1201,
-        a: ['foo', { x: ['%sin%', [['%get%', 'v']]] }],
+        a: ['foo', { x: ['%sin%', ['%get%', 'v']] }],
         b: ['%exec%', [['%global%', 'Math'], 'cos', [['%get%', 'v']]]],
         c: ['%exec%', [['%Math%'], 'tan', [1]]],
         d: ['%exec%', ['test', 'length']],
@@ -36,7 +36,38 @@ test('func, object, exec & global', t => {
   t.end();
 });
 
-test('Root Array + external context', t => {
+test('README example', t => {
+  const transform = getTransformer({
+    transforms: {
+      ...builtInTransforms,
+      '%global%': arg => global[arg],
+    },
+  });
+  const transformed = transform({
+    angle: 2.1201,
+    value: ['%exec%', ['%global%', 'Math'], 'cos', [['%get%', 'angle']]],
+    timestamp: ['%exec%', ['%global%', 'Date'], 'now', []],
+    dateStr: ['%exec%', 'new', ['%global%', 'Date'], [['%get%', 'timestamp']], 'toISOString', []],
+    dateStrLen: ['%exec%', ['%get%', 'dateStr'], 'length'],
+  });
+  // console.log(transformed);
+  const answers = {
+    angle: 2.1201,
+    value: -0.5220934665926794,
+    // timestamp: 1522084491482,
+    // dateStr: '2018-03-26T17:14:51.482Z',
+    dateStrLen: 24,
+  };
+  Object.entries(answers).forEach(([k, v]) => {
+    t.equals(v, answers[k]);
+  });
+  t.equals(typeof transformed.dateStr, 'string');
+  t.equals(typeof transformed.timestamp, 'number');
+  t.ok(transformed.timestamp > 1500000000000);
+  t.end();
+});
+
+test('Root Array + external context + altering flat transform args', t => {
   const external = { foo: 'bar' };
   const transform = getTransformer({
     transforms: {
@@ -48,9 +79,9 @@ test('Root Array + external context', t => {
       },
     },
   });
-  const transformed = transform([
-    ['%set%', ['value', ['%exec%', [['%get%', 'foo'], 'length']]]],
-    ['%set%', ['value2', ['%exec%', [['%get%', 'none'], 'length']]]],
+  transform([
+    ['%set%', 'value', ['%exec%', [['%get%', 'foo'], 'length']]],
+    ['%set%', ['value2', ['%exec%', ['%get%', 'none'], 'length']]],
   ]);
   // console.log(transformed);
   t.equals(external.value, 3);
@@ -68,7 +99,7 @@ test('default context', t => {
   });
   const transformed = transform({
     a: 5,
-    b: ['%*%', [['%get%', 'a'], 2]],
+    b: ['%*%', ['%get%', 'a'], 2],
     c: ['%+%', [['%get%', 'b'], 4]],
   });
   // console.log(transformed);
@@ -82,16 +113,14 @@ test('example: eval', t => {
   const transform = getTransformer({
     transforms: {
       ...builtInTransforms,
-      '%eval%': args => eval(args[0]), // eslint-disable-line
+      '%eval%': arg => eval(arg), // eslint-disable-line
       '%global%': arg => global[arg],
     },
   });
-  const transformed = transform([
+  transform([
     '%eval%',
-    [
-      `console.log('Testing eval!');
-        value = 5;`,
-    ],
+    `console.log('Testing eval!');
+    value = 5;`,
   ]);
   // console.log(transformed);
   t.equals(value, 5);
@@ -101,12 +130,10 @@ test('example: eval', t => {
   const transformed2 = transform({
     b: [
       '%exec%',
+      ['%global%', 'eval'],
       [
-        ['%global%', 'eval'],
-        [
-          `console.log('Testing eval 2!');
+        `console.log('Testing eval 2!');
           value = 6;`,
-        ],
       ],
     ],
   });
@@ -124,18 +151,16 @@ test('example: controlled global', t => {
       '%global%': arg => ({ Date, Math }[arg]),
     },
   });
-  const transformed = transform({
+  transform({
     b: [
       '%exec%',
+      ['%global%', 'eval'],
       [
-        ['%global%', 'eval'],
-        [
-          `console.log('Testing eval 2!');
+        `console.log('Testing eval 2!');
           value = 6;`,
-        ],
       ],
     ],
-    now: ['%exec%', [['%global%', 'Date'], 'now', []]],
+    now: ['%exec%', ['%global%', 'Date'], 'now', []],
   });
   // console.log(transformed);
   t.equals(value, 0);
@@ -157,7 +182,7 @@ test('default root transform', t => {
   // console.log(transformed);
   t.same(transformed, [5]);
   const transformed2 = transform({
-    if: [{ '<': [['%exec%', [['%global%', 'Date'], 'now', []]], 123] }, [5], [6]],
+    if: [{ '<': [['%exec%', ['%global%', 'Date'], 'now', []], 123] }, [5], [6]],
   });
   // console.log(transformed2);
   t.same(transformed2, [6]);
@@ -194,8 +219,7 @@ test('realistic', t => {
   const data = { type: 'temperature', payload: [24.3] };
   // Used in README:
   const transformer = getTransformer({
-    defaultLevel1Transform: (arg, ctx) =>
-       jsonLogic.apply(arg, ctx),
+    defaultLevel1Transform: jsonLogic.apply,
   });
   let tr = transformer(
     {
