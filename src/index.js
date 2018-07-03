@@ -11,7 +11,7 @@ const defaultConf = {
   // defaultRootTransform: undefined,
   // leafTransform: undefined,
   // context,
-  maxDepth: 100,
+  maxDepth: 100
   // transforms: {
   //   // '%tag%': (args) => { ... }
   // },
@@ -64,7 +64,7 @@ export const builtInTransforms = {
       }
     }
     return obj;
-  },
+  }
 };
 
 function funcInObj(key, obj, args, ctx, defaultReturn) {
@@ -90,7 +90,10 @@ function transform(conf, obj, ctx, trs, level = 0) {
   if (Array.isArray(obj)) {
     const newArray = obj.map(v => transform(conf, v, ctx, trs, level + 1));
     // console.log(level, 'newArray:', newArray);
-    const args = newArray.length > 2 && !Array.isArray(newArray[1]) ? tail(newArray) : newArray[1];
+    const args =
+      newArray.length > 2 && !Array.isArray(newArray[1])
+        ? tail(newArray)
+        : newArray[1];
     return funcInObj(newArray[0], trs, args, ctx, newArray);
   } else if (isObject(obj)) {
     const newObj = Object.entries(obj).reduce((r, [k, v]) => {
@@ -114,7 +117,7 @@ function transformer(conf, obj, context, transforms) {
     conf,
     obj,
     ctx,
-    transforms ? { ...conf.transforms, ...transforms } : conf.transforms,
+    transforms ? { ...conf.transforms, ...transforms } : conf.transforms
   );
   if (conf.defaultRootTransform) {
     result = conf.defaultRootTransform(result, ctx);
@@ -123,7 +126,7 @@ function transformer(conf, obj, context, transforms) {
 }
 
 function theGetTransform(args, ctx) {
-  if (typeof args === 'string') return get(ctx, args);
+  // if (typeof args === 'string') return get(ctx, args);
   return get(ctx, args);
 }
 
