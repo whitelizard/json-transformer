@@ -8,46 +8,84 @@ Imaging having this object (nonsense rules, but to show some different examples)
 
 ```js
 {
-  angle: 2.1201,
-  value: ['%exec%', ['%global%', 'Math'], 'cos', [['%get%', 'angle']]],
-  timestamp: ['%exec%', ['%global%', 'Date'], 'now', []],
-  dateStr: ['%exec%', 'new', ['%global%', 'Date'], [['%get%', 'timestamp']], 'toISOString', []],
-  dateStrLen: ['%exec%', ['%get%', 'dateStr'], 'length'],
+  values: ['%data%'],
+  config: {
+    width: ['%offset%', 100],
+  },
+  timestamp: ['%ts%'],
 }
 ```
 
 do:
 
 ```js
-transform(json);
+transform(obj);
 ```
 
 and get:
 
 ```js
 {
-  angle: 2.1201,
-  value: -0.5220934665926794,
-  timestamp: 1522084491482,
-  dateStr: '2018-03-26T17:14:51.482Z',
-  dateStrLen: 24
+  values:[4, 7, 8, 10, 3, 1],
+  config: {
+    width: 116,
+  },
+  timestamp: 1530812733300,
 }
 ```
 
 What made that work was this simple setup (for node.js):
 
 ```js
-import getTransformer, { builtInTransforms } from 'json-transformer-js';
+import getTransformer from 'json-transformer-js';
 
+const offset = 16;
 const transform = getTransformer({
   transforms: {
-    ...builtInTransforms,
-    '%global%': arg => global[arg],
+    '%offset%': x => x + offset,
+    '%ts%': Date.now,
+    '%data%': [4, 7, 8, 10, 3, 1],
   },
 });
 ```
 
-Inside the `builtInTransforms` is the `%exec%` transform (the `%get%` transform is even more built in, see options below).
+Lets now look at some more possibilities in an extended example:
+
+```js
+import getTransformer from 'json-transformer-js';
+import get from 'lodash.get';
+import set from 'lodash.set';
+
+const ctx = { offset: 16 };
+
+const transform = getTransformer({
+  defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
+  transforms: {
+    '%get%': k => get(ctx, k),
+    '%+%': args => args.reduce((r, v) => r + v, 0),
+    '%ts%': () => new Date(),
+    '%data%': [4, 7, 8, 10, 3, 1],
+    '%sqMap%': a => a.map(x => x * x),
+  },
+});
+
+const transformed = transform({
+  values: ['%data%'],
+  config: {
+    width: ['%+%', ['%get%', 'offset'], 100],
+    squares: ['%sqMap%', ['%get%', 'values']],
+  },
+  timestamp: ['%ts%'],
+}); /* -> {
+  values: [ 4, 7, 8, 10, 3, 1 ],
+  config: {
+    width: 116,
+    squares: [ 16, 49, 64, 100, 9, 1 ]
+  },
+  timestamp: 2018-07-05T18:46:42.703Z,
+}
+*/
+```
 
 ## Overview
 
@@ -57,14 +95,11 @@ So, this library is simply a depth-first parser of JS objects, making functions 
 
 Most of the features are best described through the different options that can be passed to `getTransformer` (default value after equals):
 
-* `transforms = { '%get%': <modified get from lodash> }`: The collection of transforms that will be used in the transform. (There is also a possibility of passing transforms dynamically when using a transformer).
-* `noGetTransform = false`: Makes it possible to remove the built in `%get%`.
+* `transforms = {}`: The collection of transforms that will be used in the transform.
 * `maxDepth = 100`: A limit on the depth of the parsed object, basically to prevent that cyclic references hangs the thread.
-* `context = {}`: A global context, always visible for rules in a created transformer. (`%get%` will grab from this if no dynamic context is given later).
-* `rootToContext = true`: Tells the transformer to put the root key-values of the transformed object into the context as parsing is made, enabling `%get%` to fetch these later in the same transformation.
 * `defaultRootTransform = undefined`: Set a function as an implicit default for the whole parsed data structure.
-* `defaultLevel1Transform = undefined`: More interesting than the previous. For example, if this was set to `builtInTransforms['%exec%']` in the first example above, all the first level arrays with `'%exec%'` could have been removed.
-* `leafTransform = undefined`: Set this to a function in order to transform all simple/leaf values. Ex: `arg => (typeof arg === 'string' ? arg.toLowerCase() : arg)` to convert all strings to lower case.
+* `defaultLevel1Transform = undefined`: If transforming an object, each value will be run through this (See example above).
+* `leafTransform = undefined`: Set this to a function in order to transform all simple/leaf values. Ex: `arg => (typeof arg === 'string' ? arg.toLowerCase() : arg)` to convert all strings anywhere in the transformed object to lower case.
 
 ## Applied
 
@@ -74,37 +109,46 @@ Now let's make something more interesting. Let's import [JsonLogic](http://jsonl
 import getTransformer from 'json-transformer-js';
 import jsonLogic from 'json-logic-js';
 
-const transform = getTransformer({
-  defaultLevel1Transform: jsonLogic.apply,
-});
+const rule = {
+  threshold: 22,
+  isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] },
+  warning: {
+    and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
+  },
+  message: {
+    if: [{ var: 'warning' }, 'Temperature is high', undefined],
+  },
+};
 
 function onMessage(data, response) {
-  transform(
-    {
-      threshold: 22,
-      isTemperature: { '===': [{ var: 'data.type' }, 'temperature'] }, // See context below
-      warning: {
-        and: [{ var: 'isTemperature' }, { '>': [{ var: 'data.payload.0' }, { var: 'threshold' }] }],
-      },
-      message: {
-        if: [{ var: 'warning' }, 'Temperature is high', undefined],
-      },
+  const ctx = { data };
+  getTransformer({
+    defaultLevel1Transform: (v, k) => {
+      const res = jsonLogic.apply(v, ctx);
+      set(ctx, k, res);
+      return res;
     },
-    { data }, // Context
-  );
+  })(rule);
   if (tr.message) {
     response.send({ type: data.type, message: tr.message });
   }
 }
 ```
 
-The "rule" above should of course be dynamic and e.g. fetched from a database.
+The "rule" above should probably be dynamic and e.g. fetched from a database.
 
 ## Licence
 
 MIT
 
 ## Change Log
+
+### 3
+
+* All context handling removed (including options).
+  - (Manual context handling is easy to add in use.)
+* Removed builtInTransforms (the `%exec%` transform. You can find it in the test file of the source in github).
+* Removed the built in `%get%` transform.
 
 ### 2
 

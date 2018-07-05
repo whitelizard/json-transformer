@@ -1,7 +1,8 @@
 {
   "name": "json-transformer-js",
   "version": "2.0.0",
-  "description": "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
+  "description":
+    "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
   "main": "index.js",
   "scripts": {
     "test": "npx babel-node ./test/index.js",
@@ -15,34 +16,29 @@
     "url": "https://github.com/whitelizard/json-transformer/issues"
   },
   "homepage": "https://github.com/whitelizard/json-transformer#readme",
-  "keywords": [
-    "json",
-    "transform",
-    "parse",
-    "rules"
-  ],
+  "keywords": ["json", "transform", "parse", "rules"],
   "author": "Esbjörn Blomquist",
   "license": "MIT",
   "dependencies": {
-    "lodash.get": "^4.4.2",
     "lodash.isfunction": "^3.0.9",
     "lodash.isobject": "^3.0.2",
     "lodash.tail": "^4.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-eslint": "^8.2.2",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^8.2.5",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-es2015-classes": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-import": "^2.13.0",
     "json-logic-js": "^1.2.2",
-    "prettier-eslint": "^8.8.1",
-    "tape": "^4.9.0",
-    "lodash.set": "^4.3.2"
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
+    "prettier-eslint": "^8.8.2",
+    "tape": "^4.9.1"
   }
 }
