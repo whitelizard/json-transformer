@@ -1,8 +1,7 @@
 {
   "name": "json-transformer-js",
-  "version": "2.0.0",
-  "description":
-    "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
+  "version": "3.0.0",
+  "description": "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
   "main": "index.js",
   "scripts": {
     "test": "npx babel-node ./test/index.js",
@@ -16,7 +15,12 @@
     "url": "https://github.com/whitelizard/json-transformer/issues"
   },
   "homepage": "https://github.com/whitelizard/json-transformer#readme",
-  "keywords": ["json", "transform", "parse", "rules"],
+  "keywords": [
+    "json",
+    "transform",
+    "parse",
+    "rules"
+  ],
   "author": "Esbjörn Blomquist",
   "license": "MIT",
   "dependencies": {
