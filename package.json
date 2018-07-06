@@ -1,6 +1,6 @@
 {
   "name": "json-transformer-js",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Transform an object with dynamic transforms, enabling controlled code execution of JSON 'rules'",
   "main": "index.js",
   "scripts": {
