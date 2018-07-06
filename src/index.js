@@ -1,4 +1,4 @@
-import isObject from 'lodash.isobject';
+import isPlainObject from 'lodash.isplainobject';
 import isFunction from 'lodash.isfunction';
 import tail from 'lodash.tail';
 
@@ -36,7 +36,7 @@ function transform(conf, obj, trs, level = 0) {
     // console.log(level, 'newArray:', newArray);
     const args = newArray.length > 2 && !Array.isArray(newArray[1]) ? tail(newArray) : newArray[1];
     return funcInObj(newArray[0], trs, args, newArray);
-  } else if (isObject(obj)) {
+  } else if (isPlainObject(obj)) {
     const newObj = Object.entries(obj).reduce((r, [k, v]) => {
       // console.log(level, 'OBJ loop:', k, ':', v, ' CTX:');
       r[k] = transform(conf, v, trs, level + 1);

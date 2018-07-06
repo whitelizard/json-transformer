@@ -443,3 +443,13 @@ test('defaultLevel1Transform', t => {
   t.ok(!result.result);
   t.end();
 });
+
+test('functions in transformed object', t => {
+  const transform = getTransformer();
+  const transformed = transform({
+    func: x => x * x,
+  });
+  // console.log(transformed);
+  t.equals(transformed.func(5), 25);
+  t.end();
+});

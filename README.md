@@ -49,7 +49,7 @@ const transform = getTransformer({
 });
 ```
 
-Lets now look at some more possibilities in an extended example:
+Lets look at a possibility of handling variables (both preset and dynamic) in an extended example:
 
 ```js
 import getTransformer from 'json-transformer-js';
@@ -95,15 +95,15 @@ So, this library is simply a depth-first parser of JS objects, making functions 
 
 Most of the features are best described through the different options that can be passed to `getTransformer` (default value after equals):
 
-* `transforms = {}`: The collection of transforms that will be used in the transform.
-* `maxDepth = 100`: A limit on the depth of the parsed object, basically to prevent that cyclic references hangs the thread.
-* `defaultRootTransform = undefined`: Set a function as an implicit default for the whole parsed data structure.
-* `defaultLevel1Transform = undefined`: If transforming an object, each value will be run through this (See example above).
-* `leafTransform = undefined`: Set this to a function in order to transform all simple/leaf values. Ex: `arg => (typeof arg === 'string' ? arg.toLowerCase() : arg)` to convert all strings anywhere in the transformed object to lower case.
+- `transforms = {}`: The collection of transforms that will be used in the transform.
+- `maxDepth = 100`: A limit on the depth of the parsed object, basically to prevent that cyclic references hangs the thread.
+- `defaultRootTransform = undefined`: Set a function as an implicit default for the whole parsed data structure.
+- `defaultLevel1Transform = undefined`: If transforming an object, each value will be run through this (See example above).
+- `leafTransform = undefined`: Set this to a function in order to transform all simple/leaf values. Ex: `arg => (typeof arg === 'string' ? arg.toLowerCase() : arg)` to convert all strings anywhere in the transformed object to lower case.
 
 ## Applied
 
-Now let's make something more interesting. Let's import [JsonLogic](http://jsonlogic.com), make it the root default, and make use of context. Let's also assume we have some websocket client that invokes our function `onMessage` when a message arrives, and allows for sending a response.
+Let's make something more interesting. Let's import [JsonLogic](http://jsonlogic.com), make it the root default, and make use of context. Let's also assume we have some websocket client that invokes our function `onMessage` when a message arrives, and allows for sending a response.
 
 ```js
 import getTransformer from 'json-transformer-js';
@@ -145,26 +145,27 @@ MIT
 
 ### 3
 
-* All context handling removed (including options).
+- All context handling removed (including options).
   - (Manual context handling is easy to add in use.)
-* Removed builtInTransforms (the `%exec%` transform. You can find it in the test file of the source in github).
-* Removed the built in `%get%` transform.
+- Removed builtInTransforms (the `%exec%` transform. You can find it in the test file of the source in github).
+- Removed the built in `%get%` transform.
+- Much smaller footprint.
 
 ### 2
 
-* Removed `objectSyntax` & instead both work always.
-* `defaultRootTransform` is now actually for the root / the whole data structure, and
-* `defaultLevel1Transform` is the new name for default transform at level 1.
-* Both parameters above take functions, not transform references as strings, as before.
-* Flat transform arguments possible.
+- Removed `objectSyntax` & instead both work always.
+- `defaultRootTransform` is now actually for the root / the whole data structure, and
+- `defaultLevel1Transform` is the new name for default transform at level 1.
+- Both parameters above take functions, not transform references as strings, as before.
+- Flat transform arguments possible.
 
 ### 1.2
 
-* Added second parameter, `contextInit`, to the returned function, for dynamic context.
+- Added second parameter, `contextInit`, to the returned function, for dynamic context.
 
 ### 1.1
 
-* Added the `leafTransform` option/feature.
+- Added the `leafTransform` option/feature.
 
 ### 1.0
 
