@@ -1,5 +1,4 @@
 test/
-src/
 node_modules/
 .eslintrc
 .babelrc
