@@ -16,7 +16,7 @@ function funcInObj(key, obj, args, defaultReturn) {
     // console.log('funcInObj:', key, 'ARGS:', args, 'CTX:', 'DEF:', defaultReturn);
     const func = obj[key];
     // console.log('funcInObj func:', typeof func, func, isFunction(func) && func(args));
-    return isFunction(func) ? func(args) : func;
+    return isFunction(func) ? func(...args) : func;
   }
   return defaultReturn;
 }
@@ -34,7 +34,7 @@ function transform(conf, obj, trs, level = 0) {
   if (Array.isArray(obj)) {
     const newArray = obj.map(v => transform(conf, v, trs, level + 1));
     // console.log(level, 'newArray:', newArray);
-    const args = newArray.length > 2 && !Array.isArray(newArray[1]) ? tail(newArray) : newArray[1];
+    const args = tail(newArray);
     return funcInObj(newArray[0], trs, args, newArray);
   } else if (isPlainObject(obj)) {
     const newObj = Object.entries(obj).reduce((r, [k, v]) => {

@@ -72,7 +72,7 @@ const transform = getTransformer({
 const transformed = transform({
   values: ['%data%'],
   config: {
-    width: ['%+%', ['%get%', 'offset'], 100],
+    width: ['%+%', [['%get%', 'offset'], 100]],
     squares: ['%sqMap%', ['%get%', 'values']],
   },
   timestamp: ['%ts%'],
@@ -143,11 +143,15 @@ MIT
 
 ## Change Log
 
+### 4
+
+- Arguments into transforms is now never unpacked if it is an array.
+
 ### 3
 
 - All context handling removed (including options).
   - (Manual context handling is easy to add in use.)
-- Removed builtInTransforms (the `%exec%` transform. You can find it in the test file of the source in github).
+- Removed builtInTransforms (the `%exec%` transform).
 - Removed the built in `%get%` transform.
 - Much smaller footprint.
 
