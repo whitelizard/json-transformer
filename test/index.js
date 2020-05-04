@@ -7,7 +7,7 @@ import getTransformer from '../src';
 
 export const exTransforms = {
   // '%global%': arg => (global || window)[arg],
-  '%exec%': arg => {
+  '%exec%': (arg) => {
     // console.log('%exec%:', arg);
     if (!Array.isArray(arg)) return arg;
     if (arg.length === 1) return arg[0];
@@ -55,28 +55,32 @@ export const exTransforms = {
   },
 };
 
-test('func, object, exec & global', t => {
+test('func, object, exec & global', (t) => {
   const ctx = {};
   const transform = getTransformer({
     // console.log('defL1:', k, v);
     defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
     transforms: {
       ...exTransforms,
-      '%get%': k => get(ctx, k),
+      '%get%': (k) => get(ctx, k),
       '%sin%': Math.sin,
       '%Math%': Math,
-      '%global%': arg => global[arg],
+      '%global%': (arg) => global[arg],
     },
   });
-  const transformed = transform(JSON.parse(JSON.stringify({
-    v: 2.1201,
-    a: ['foo', { x: ['%sin%', ['%get%', 'v']] }],
-    b: ['%exec%', [['%global%', 'Math'], 'cos', [['%get%', 'v']]]],
-    c: ['%exec%', [['%Math%'], 'tan', [1]]],
-    d: ['%exec%', ['test', 'length']],
-    e: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482]]],
-    f: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482], 'toISOString', []]],
-  })));
+  const transformed = transform(
+    JSON.parse(
+      JSON.stringify({
+        v: 2.1201,
+        a: ['foo', { x: ['%sin%', ['%get%', 'v']] }],
+        b: ['%exec%', [['%global%', 'Math'], 'cos', [['%get%', 'v']]]],
+        c: ['%exec%', [['%Math%'], 'tan', [1]]],
+        d: ['%exec%', ['test', 'length']],
+        e: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482]]],
+        f: ['%exec%', ['new', ['%global%', 'Date'], [1522084491482], 'toISOString', []]],
+      }),
+    ),
+  );
   // console.log(transformed);
   t.equals(transformed.a[1].x, 0.8528882764707455);
   t.equals(transformed.b, -0.5220934665926794);
@@ -87,11 +91,11 @@ test('func, object, exec & global', t => {
   t.end();
 });
 
-test('README example 1', t => {
+test('README example 1', (t) => {
   const offset = 16;
   const transform = getTransformer({
     transforms: {
-      '%offset%': x => x + offset,
+      '%offset%': (x) => x + offset,
       '%ts%': Date.now,
       '%data%': [4, 7, 8, 10, 3, 1],
     },
@@ -111,16 +115,16 @@ test('README example 1', t => {
   t.end();
 });
 
-test('README example 2', t => {
+test('README example 2', (t) => {
   const ctx = { offset: 16 };
   const transform = getTransformer({
     defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
     transforms: {
-      '%get%': k => get(ctx, k),
-      '%+%': args => args.reduce((r, v) => r + v, 0),
+      '%get%': (k) => get(ctx, k),
+      '%+%': (args) => args.reduce((r, v) => r + v, 0),
       '%ts%': () => new Date(),
       '%data%': [4, 7, 8, 10, 3, 1],
-      '%sqMap%': a => a.map(x => x * x),
+      '%sqMap%': (a) => a.map((x) => x * x),
     },
   });
   const transformed = transform({
@@ -140,14 +144,14 @@ test('README example 2', t => {
   t.end();
 });
 
-test('Root Array + external context + altering flat transform args', t => {
+test('Root Array + external context + altering flat transform args', (t) => {
   const external = { foo: 'bar' };
   const transform = getTransformer({
     defaultLevel1Transform: (v, k) => get(set(external, k, v), k),
     transforms: {
       ...exTransforms,
-      '%get%': args => get(external, args),
-      '%set%': args => {
+      '%get%': (args) => get(external, args),
+      '%set%': (args) => {
         set(external, ...args);
         return args[1];
       },
@@ -163,14 +167,14 @@ test('Root Array + external context + altering flat transform args', t => {
   t.end();
 });
 
-test('Simple external context', t => {
+test('Simple external context', (t) => {
   const ctx = {};
   const transform = getTransformer({
     defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
     transforms: {
-      '%get%': k => get(ctx, k),
-      '%*%': args => args.reduce((r, v) => r * v, 1),
-      '%+%': args => args.reduce((r, v) => r + v, 0),
+      '%get%': (k) => get(ctx, k),
+      '%*%': (args) => args.reduce((r, v) => r * v, 1),
+      '%+%': (args) => args.reduce((r, v) => r + v, 0),
     },
   });
   const transformed = transform({
@@ -184,13 +188,13 @@ test('Simple external context', t => {
   t.end();
 });
 
-test('example: eval', t => {
+test('example: eval', (t) => {
   let value = 0; // eslint-disable-line
   const transform = getTransformer({
     transforms: {
       ...exTransforms,
-      '%eval%': arg => eval(arg), // eslint-disable-line
-      '%global%': arg => global[arg],
+      '%eval%': (arg) => eval(arg), // eslint-disable-line
+      '%global%': (arg) => global[arg],
     },
   });
   transform([
@@ -219,12 +223,12 @@ test('example: eval', t => {
   t.end();
 });
 
-test('example: controlled global', t => {
+test('example: controlled global', (t) => {
   let value = 0; // eslint-disable-line
   const transform = getTransformer({
     transforms: {
       ...exTransforms,
-      '%global%': arg => ({ Date, Math }[arg]),
+      '%global%': (arg) => ({ Date, Math }[arg]),
     },
   });
   transform({
@@ -243,12 +247,12 @@ test('example: controlled global', t => {
   t.end();
 });
 
-test('default root transform', t => {
+test('default root transform', (t) => {
   const transform = getTransformer({
     transforms: {
       ...exTransforms,
       // '%jl%': (arg, ctx) => jsonLogic.apply(arg, ctx),
-      '%global%': arg => ({ Date, Math }[arg]),
+      '%global%': (arg) => ({ Date, Math }[arg]),
     },
     defaultRootTransform: jsonLogic.apply,
   });
@@ -265,11 +269,11 @@ test('default root transform', t => {
   t.end();
 });
 
-test('default level 1 transform', t => {
+test('default level 1 transform', (t) => {
   const transform = getTransformer({
     transforms: {
       // ...exTransforms,
-      '%global%': arg => ({ Date, Math }[arg]),
+      '%global%': (arg) => ({ Date, Math }[arg]),
     },
     defaultLevel1Transform: exTransforms['%exec%'],
   });
@@ -285,10 +289,10 @@ test('default level 1 transform', t => {
   t.end();
 });
 
-test('realistic', t => {
+test('realistic', (t) => {
   let result;
   const response = {
-    send: msg => {
+    send: (msg) => {
       result = msg;
     },
   };
@@ -321,9 +325,9 @@ test('realistic', t => {
   t.end();
 });
 
-test('leaf transform', t => {
+test('leaf transform', (t) => {
   const transform = getTransformer({
-    leafTransform: arg => (typeof arg === 'string' ? arg.toLowerCase() : arg),
+    leafTransform: (arg) => (typeof arg === 'string' ? arg.toLowerCase() : arg),
   });
   const transformed = transform({
     a: 5,
@@ -338,10 +342,10 @@ test('leaf transform', t => {
   t.end();
 });
 
-test('leaf transform + default transform', t => {
+test('leaf transform + default transform', (t) => {
   const transform = getTransformer({
     // transforms: exTransforms,
-    leafTransform: arg => (typeof arg === 'string' ? arg.toLowerCase() : arg),
+    leafTransform: (arg) => (typeof arg === 'string' ? arg.toLowerCase() : arg),
     defaultLevel1Transform: exTransforms['%exec%'],
   });
   const transformed = transform({
@@ -357,7 +361,7 @@ test('leaf transform + default transform', t => {
   t.end();
 });
 
-test('realistic 2', t => {
+test('realistic 2', (t) => {
   const globals = {
     Date,
   };
@@ -369,10 +373,10 @@ test('realistic 2', t => {
     defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
     transforms: {
       ...exTransforms,
-      '%get%': k => get(ctx, k),
-      '%global%': arg => globals[arg],
+      '%get%': (k) => get(ctx, k),
+      '%global%': (arg) => globals[arg],
       // '%_%': arg => _[arg],
-      '%jl%': v => jsonLogic.apply(v, ctx),
+      '%jl%': (v) => jsonLogic.apply(v, ctx),
     },
   });
   // const aTimestamp = 1521663819160 / 1000;
@@ -401,7 +405,7 @@ test('realistic 2', t => {
   t.end();
 });
 
-test('realistic 2, objectSyntax', t => {
+test('realistic 2, objectSyntax', (t) => {
   const globals = {
     Date,
   };
@@ -411,8 +415,8 @@ test('realistic 2, objectSyntax', t => {
     defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
     transforms: {
       ...exTransforms,
-      '%jl%': v => jsonLogic.apply(v, ctx),
-      '%global%': arg => globals[arg],
+      '%jl%': (v) => jsonLogic.apply(v, ctx),
+      '%global%': (arg) => globals[arg],
     },
   });
   const result = transform({
@@ -433,7 +437,7 @@ test('realistic 2, objectSyntax', t => {
   t.end();
 });
 
-test('defaultLevel1Transform', t => {
+test('defaultLevel1Transform', (t) => {
   const transform = getTransformer({
     defaultLevel1Transform: jsonLogic.apply,
     rootToContext: false,
@@ -444,10 +448,10 @@ test('defaultLevel1Transform', t => {
   t.end();
 });
 
-test('functions in transformed object', t => {
+test('functions in transformed object', (t) => {
   const transform = getTransformer();
   const transformed = transform({
-    func: x => x * x,
+    func: (x) => x * x,
   });
   // console.log(transformed);
   t.equals(transformed.func(5), 25);

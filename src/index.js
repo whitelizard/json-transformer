@@ -22,23 +22,14 @@ function funcInObj(key, obj, args, defaultReturn) {
 }
 
 function transform(conf, obj, trs, level = 0) {
-  // console.log(level, 'transform:', obj, '::');
   if (level > conf.maxDepth) return obj;
-  // console.log(
-  //   level,
-  //   Array(level)
-  //     .fill('  ')
-  //     .join(''),
-  //   obj,
-  // );
   if (Array.isArray(obj)) {
-    const newArray = obj.map(v => transform(conf, v, trs, level + 1));
-    // console.log(level, 'newArray:', newArray);
+    const newArray = obj.map((v) => transform(conf, v, trs, level + 1));
     const args = newArray.length > 2 && !Array.isArray(newArray[1]) ? tail(newArray) : newArray[1];
     return funcInObj(newArray[0], trs, args, newArray);
-  } else if (isPlainObject(obj)) {
+  }
+  if (isPlainObject(obj)) {
     const newObj = Object.entries(obj).reduce((r, [k, v]) => {
-      // console.log(level, 'OBJ loop:', k, ':', v, ' CTX:');
       r[k] = transform(conf, v, trs, level + 1);
       if (level === 0 && conf.defaultLevel1Transform) {
         r[k] = conf.defaultLevel1Transform(r[k], k);
@@ -51,7 +42,7 @@ function transform(conf, obj, trs, level = 0) {
   return conf.leafTransform ? conf.leafTransform(obj) : obj;
 }
 
-const transformer = conf => (obj, transforms) => {
+const transformer = (conf) => (obj, transforms) => {
   let result = transform(
     conf,
     obj,

@@ -1,3 +1,3 @@
-node_modules
-npm-debug.log
+/node_modules
+/.nyc_output
 /index.js
