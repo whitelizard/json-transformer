@@ -1,4 +1,4 @@
-import test from 'tape';
+import {test} from 'tap';
 import get from 'lodash.get';
 import set from 'lodash.set';
 import isFunction from 'lodash.isfunction';
@@ -88,7 +88,7 @@ test('func, object, exec & global', (t) => {
   t.equals(transformed.d, 4);
   t.equals(transformed.e.toISOString(), '2018-03-26T17:14:51.482Z');
   t.equals(transformed.f, '2018-03-26T17:14:51.482Z');
-  t.end();
+  t.plan(6);
 });
 
 test('README example 1', (t) => {
@@ -112,7 +112,7 @@ test('README example 1', (t) => {
   t.equals(transformed.config.width, 116);
   t.equals(typeof transformed.timestamp, 'number');
   t.ok(transformed.timestamp > 1500000000000);
-  t.end();
+  t.plan(4);
 });
 
 test('README example 2', (t) => {
@@ -141,7 +141,7 @@ test('README example 2', (t) => {
   t.equals(transformed.config.squares[1], 49);
   t.equals(typeof transformed.timestamp, 'object');
   t.ok(transformed.timestamp.toString().length > 22);
-  t.end();
+  t.plan(5);
 });
 
 test('Root Array + external context + altering flat transform args', (t) => {
@@ -164,7 +164,7 @@ test('Root Array + external context + altering flat transform args', (t) => {
   // console.log(transformed);
   t.equals(external.value, 3);
   t.equals(external.value2, undefined);
-  t.end();
+  t.plan(2);
 });
 
 test('Simple external context', (t) => {
@@ -185,7 +185,7 @@ test('Simple external context', (t) => {
   // console.log(transformed);
   t.equals(transformed.b, 10);
   t.equals(transformed.c, 14);
-  t.end();
+  t.plan(2);
 });
 
 test('example: eval', (t) => {
@@ -220,7 +220,7 @@ test('example: eval', (t) => {
   // console.log(transformed2);
   t.equals(value, 5);
   t.equals(transformed2.b, 6);
-  t.end();
+  t.plan(3);
 });
 
 test('example: controlled global', (t) => {
@@ -244,7 +244,7 @@ test('example: controlled global', (t) => {
   });
   // console.log(transformed);
   t.equals(value, 0);
-  t.end();
+  t.plan(1);
 });
 
 test('default root transform', (t) => {
@@ -266,7 +266,7 @@ test('default root transform', (t) => {
   });
   // console.log(transformed2);
   t.same(transformed2, [6]);
-  t.end();
+  t.plan(2);
 });
 
 test('default level 1 transform', (t) => {
@@ -286,7 +286,7 @@ test('default level 1 transform', (t) => {
   t.equals(transformed.a, 5);
   t.equals(transformed.b, 5);
   t.equals(typeof transformed.c, 'number');
-  t.end();
+  t.plan(3);
 });
 
 test('realistic', (t) => {
@@ -322,7 +322,7 @@ test('realistic', (t) => {
   t.equals(typeof result, 'object');
   t.equals(result.type, 'temperature');
   t.equals(result.message, 'Temperature is high');
-  t.end();
+  t.plan(3);
 });
 
 test('leaf transform', (t) => {
@@ -339,7 +339,7 @@ test('leaf transform', (t) => {
   t.equals(transformed.b, 'test');
   t.equals(transformed.c[0][0], 'tom');
   t.equals(transformed.c[1].KEY, 'value');
-  t.end();
+  t.plan(4);
 });
 
 test('leaf transform + default transform', (t) => {
@@ -358,7 +358,7 @@ test('leaf transform + default transform', (t) => {
   t.equals(transformed.b, 'test');
   t.equals(transformed.c[0][0], 'tom');
   t.equals(transformed.c[1].KEY, 'value');
-  t.end();
+  t.plan(4);
 });
 
 test('realistic 2', (t) => {
@@ -402,7 +402,7 @@ test('realistic 2', (t) => {
   t.equals(result.apiCalls[0][1], '1521667419.16');
   t.equals(result.timeDiff, 2 * 3600 * 1000);
   t.equals(ctx.timeDiff, 2 * 3600 * 1000);
-  t.end();
+  t.plan(3);
 });
 
 test('realistic 2, objectSyntax', (t) => {
@@ -434,7 +434,7 @@ test('realistic 2, objectSyntax', (t) => {
   // console.log(result);
   t.equals(result.apiCalls[0][1], String(aTimestamp));
   t.equals(result.timeDiff, 3600 * 1000);
-  t.end();
+  t.plan(2);
 });
 
 test('defaultLevel1Transform', (t) => {
@@ -445,7 +445,7 @@ test('defaultLevel1Transform', (t) => {
   const result = transform({ result: { '>': [{ var: 'msg.pl.0' }, 10] } }, { msg: {} });
   // console.log('RESULT:', result);
   t.ok(!result.result);
-  t.end();
+  t.plan(1);
 });
 
 test('functions in transformed object', (t) => {
@@ -455,5 +455,5 @@ test('functions in transformed object', (t) => {
   });
   // console.log(transformed);
   t.equals(transformed.func(5), 25);
-  t.end();
+  t.plan(1);
 });
