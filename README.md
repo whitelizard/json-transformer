@@ -2,6 +2,8 @@
 
 Transform an object (e.g parsed from JSON) through dynamic transforms, enabling JSON "rules" that allows controlled code execution.
 
+> Tip: Check out [ploson](https://npmjs.org/package/ploson) if you need something more robust, simpler & more competent. This package is a kind of predecessor to **ploson**.
+
 ## Intro
 
 Imaging having this object (nonsense rules, but to show some different examples):
@@ -42,7 +44,7 @@ import getTransformer from 'json-transformer-js';
 const offset = 16;
 const transform = getTransformer({
   transforms: {
-    '%offset%': x => x + offset,
+    '%offset%': (x) => x + offset,
     '%ts%': Date.now,
     '%data%': [4, 7, 8, 10, 3, 1],
   },
@@ -61,11 +63,11 @@ const ctx = { offset: 16 };
 const transform = getTransformer({
   defaultLevel1Transform: (v, k) => get(set(ctx, k, v), k),
   transforms: {
-    '%get%': k => get(ctx, k),
-    '%+%': args => args.reduce((r, v) => r + v, 0),
+    '%get%': (k) => get(ctx, k),
+    '%+%': (args) => args.reduce((r, v) => r + v, 0),
     '%ts%': () => new Date(),
     '%data%': [4, 7, 8, 10, 3, 1],
-    '%sqMap%': a => a.map(x => x * x),
+    '%sqMap%': (a) => a.map((x) => x * x),
   },
 });
 

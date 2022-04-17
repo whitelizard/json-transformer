@@ -1,6 +1,10 @@
 /node_modules
 /test
+/coverage
+.nyc_output
 .babelrc.json
 .prettierrc.json
 .eslintrc.json
-.nyc_output
+jest.config.js
+.editorconfig
+.eslintignore
